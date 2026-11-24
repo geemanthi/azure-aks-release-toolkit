@@ -83,14 +83,15 @@ jobs:
             -backend-config="key=terraform.tfstate"
 
       - name: Terraform Plan
-        run: terraform plan -no-color -lock-timeout=5m -out=terraform.tfplan
+        run: terraform plan -var-file=dev.tfvars -no-color -lock-timeout=5m -out=terraform.tfplan
 
       - name: Terraform Apply
         if: inputs.operation == 'apply'
-        run: terraform apply -no-color -lock-timeout=5m terraform.tfplan
+        run: terraform apply -var-file=dev.tfvars -no-color -lock-timeout=5m terraform.tfplan
 
       - name: Terraform Destroy
         if: inputs.operation == 'destroy'
-        run: terraform apply -destroy -no-color -lock-timeout=5m terraform.tfplan
-
+        run: |
+          terraform plan -destroy -var-file=dev.tfvars -out=destroy.tfplan
+          terraform apply -auto-approve destroy.tfplan
    
