@@ -1,4 +1,4 @@
-name: Terraform Deploy
+name: Terraform Run
 
 on:
   push:
@@ -48,7 +48,7 @@ jobs:
       - run: terraform init -backend=false
       - run: terraform validate
 
-  terraform:
+  deploy:
     name: Terraform Run
     needs: validate
     runs-on: ubuntu-latest
@@ -86,10 +86,11 @@ jobs:
         run: terraform plan -no-color -lock-timeout=5m -out=terraform.tfplan
 
       - name: Terraform Apply
+        if: inputs.operation == 'apply'
         run: terraform apply -no-color -lock-timeout=5m terraform.tfplan
 
       - name: Terraform Destroy
         if: inputs.operation == 'destroy'
-        run: terraform apply -destroy -no-color -lock-timeout=5m -out=terraform.tfplan
+        run: terraform apply -destroy -no-color -lock-timeout=5m terraform.tfplan
 
    
