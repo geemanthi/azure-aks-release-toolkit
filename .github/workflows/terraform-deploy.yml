@@ -1,11 +1,16 @@
 name: Terraform Deploy
 
 on:
-  pull_request:
+  push:
     branches: [main, "aks-release-*"]
     paths:
       - "infrastructure/**"
-      - ".github/workflows/terraform-aks.yml"
+      - ".github/workflows/terraform-deploy.yml"
+    pull_request:
+    branches: [main, "aks-release-*"]
+    paths:
+      - "infrastructure/**"
+      - ".github/workflows/terraform-deploy.yml"
     workflow_dispatch:
     inputs:
       operation:
@@ -45,7 +50,7 @@ jobs:
 
   terraform:
     name: Terraform Run
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     needs: validate
     runs-on: ubuntu-latest
     environment: dev
