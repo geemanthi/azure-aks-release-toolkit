@@ -36,7 +36,7 @@ resource "azurerm_kubernetes_cluster" "demo" {
 
   tags = {
     project     = "aks-release-toolkit"
-    environment = "demo"
+    environment = "dev"
     managed-by  = "terraform"
   }
 }
