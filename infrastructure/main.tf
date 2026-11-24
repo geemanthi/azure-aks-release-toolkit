@@ -19,9 +19,9 @@ resource "azurerm_kubernetes_cluster" "demo" {
 
   default_node_pool {
     name       = "system"
-    node_count = 2
+    node_count = 1
     vm_size    = var.node_vm_size
-    max_pods   = 30
+    max_pods   = 2
   }
 
   identity {
