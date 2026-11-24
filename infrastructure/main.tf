@@ -1,7 +1,3 @@
-data "azurerm_resource_group" "demo" {
-  name = var.resource_group_name
-}
-
 resource "azurerm_kubernetes_cluster" "demo" {
   name                = var.cluster_name
   location            = data.azurerm_resource_group.demo.location
@@ -18,6 +14,7 @@ resource "azurerm_kubernetes_cluster" "demo" {
 
   azure_active_directory_role_based_access_control {
     azure_rbac_enabled = true
+    tenant_id          = data.azurerm_client_config.current.tenant_id
   }
 
   default_node_pool {
