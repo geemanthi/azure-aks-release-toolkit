@@ -6,12 +6,12 @@ on:
     paths:
       - "infrastructure/**"
       - ".github/workflows/terraform-deploy.yml"
-    pull_request:
+  pull_request:
     branches: [main, "aks-release-*"]
     paths:
       - "infrastructure/**"
       - ".github/workflows/terraform-deploy.yml"
-    workflow_dispatch:
+  workflow_dispatch:
     inputs:
       operation:
         description: Terraform operation for the dev environment
