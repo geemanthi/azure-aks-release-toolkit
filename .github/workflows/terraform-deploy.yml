@@ -90,6 +90,6 @@ jobs:
 
       - name: Terraform Destroy
         if: inputs.operation == 'destroy'
-        run: terraform plan -destroy -no-color -lock-timeout=5m -out=terraform.tfplan
+        run: terraform apply -destroy -no-color -lock-timeout=5m -out=terraform.tfplan
 
    
