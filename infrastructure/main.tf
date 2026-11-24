@@ -40,3 +40,24 @@ resource "azurerm_kubernetes_cluster" "demo" {
     managed-by  = "terraform"
   }
 }
+
+resource "azapi_resource" "release_namespace" {
+  type      = "Microsoft.ContainerService/managedClusters/managedNamespaces@2025-10-01"
+  name      = "aks-release-demo"
+  parent_id = azurerm_kubernetes_cluster.demo.id
+  location  = azurerm_kubernetes_cluster.demo.location
+
+  body = {
+    properties = {
+      adoptionPolicy = "Never"
+      deletePolicy   = "Delete"
+    }
+  }
+}
+
+resource "azurerm_role_assignment" "release_namespace_writer" {
+  scope                = "${azurerm_kubernetes_cluster.demo.id}/namespaces/${azapi_resource.release_namespace.name}"
+  role_definition_name = "Azure Kubernetes Service RBAC Writer"
+  principal_id         = data.azurerm_client_config.current.object_id
+  principal_type       = "ServicePrincipal"
+}

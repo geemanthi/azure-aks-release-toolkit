@@ -1,0 +1,116 @@
+name: AKS App Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: App release operation
+        type: choice
+        required: true
+        default: deploy
+        options:
+          - deploy
+          - rollback
+      revision:
+        description: Known-good deployment revision (required for rollback)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: AKS ${{ inputs.operation }}
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: dev
+    concurrency:
+      group: terraform-aks-demo
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+
+    env:
+      AKS_RESOURCE_GROUP: rg-aks-release-demo
+      AKS_CLUSTER_NAME: aks-release-demo
+      AKS_NAMESPACE: aks-release-demo
+      AKS_CONTEXT: aks-release-demo-ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sign in to Azure via OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Read the AKS Kubernetes version
+        id: cluster
+        shell: bash
+        run: |
+          version="$(az aks show \
+            --resource-group "$AKS_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --query currentKubernetesVersion -o tsv)"
+          test -n "$version"
+          echo "kubectl_version=v${version#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: ${{ steps.cluster.outputs.kubectl_version }}
+
+      - uses: azure/use-kubelogin@v1
+
+      - name: Connect to AKS
+        shell: bash
+        run: |
+          az aks get-credentials \
+            --resource-group "$AKS_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --context "$AKS_CONTEXT" \
+            --format exec
+
+          kubelogin convert-kubeconfig -l azurecli
+
+      - name: Deploy and verify
+        if: inputs.operation == 'deploy'
+        shell: pwsh
+        run: |
+          ./scripts/Deploy-AksRelease.ps1 `
+            -Context $env:AKS_CONTEXT `
+            -Namespace $env:AKS_NAMESPACE
+
+      - name: Roll back and verify
+        if: inputs.operation == 'rollback'
+        shell: pwsh
+        env:
+          ROLLBACK_REVISION: ${{ inputs.revision }}
+        run: |
+          $revision = 0
+          if ((-not [int]::TryParse($env:ROLLBACK_REVISION, [ref]$revision)) -or $revision -lt 1) {
+              throw 'Enter a positive deployment revision for rollback.'
+          }
+
+          ./scripts/Undo-AksRelease.ps1 `
+            -Context $env:AKS_CONTEXT `
+            -Namespace $env:AKS_NAMESPACE `
+            -Revision $revision
+
+      - name: Show deployment history
+        shell: bash
+        run: |
+          kubectl --context "$AKS_CONTEXT" --namespace "$AKS_NAMESPACE" \
+            rollout history deployment/aks-demo
+
+      - name: Upload rollout diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aks-rollout-diagnostics
+          path: artifacts/aks-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
