@@ -51,6 +51,18 @@ resource "azapi_resource" "release_namespace" {
     properties = {
       adoptionPolicy = "Never"
       deletePolicy   = "Delete"
+
+      defaultResourceQuota = {
+        cpuRequest    = "1000m"
+        cpuLimit      = "2000m"
+        memoryRequest = "512Mi"
+        memoryLimit   = "1Gi"
+      }
+
+      defaultNetworkPolicy = {
+        ingress = "AllowSameNamespace"
+        egress  = "AllowAll"
+      }
     }
   }
 }
