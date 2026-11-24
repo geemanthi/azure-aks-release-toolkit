@@ -2,12 +2,12 @@ name: Terraform Run
 
 on:
   push:
-    branches: [main, "aks-release-*"]
+    branches: [main, "pwrshell-release-*"]
     paths:
       - "infrastructure/**"
       - ".github/workflows/terraform-deploy.yml"
   pull_request:
-    branches: [main, "aks-release-*"]
+    branches: [main, "pwrsell-release-*"]
     paths:
       - "infrastructure/**"
       - ".github/workflows/terraform-deploy.yml"
