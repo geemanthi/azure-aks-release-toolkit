@@ -1,0 +1,95 @@
+name: Terraform Deploy
+
+on:
+  push:
+    branches: [main, "aks-release-*"]
+    paths:
+      - "infrastructure/**"
+      - ".github/workflows/terraform-deploy.yml"
+  pull_request:
+    branches: [main, "aks-release-*"]
+    paths:
+      - "infrastructure/**"
+      - ".github/workflows/terraform-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Terraform operation for the dev environment
+        required: true
+        type: choice
+        default: apply
+        options:
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: infrastructure
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
+
+jobs:
+  validate:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13.0"
+          terraform_wrapper: false
+
+      - run: terraform fmt -recursive
+      - run: terraform init -backend=false
+      - run: terraform validate
+
+  terraform:
+    name: Terraform Run
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: dev
+    concurrency:
+      group: terraform-aks-demo
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ARM_USE_OIDC: "true"
+      ARM_USE_CLI: "false"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_STATE_ACCOUNT: ${{ vars.TF_STATE_STORAGE_ACCOUNT }}
+      TF_STATE_CONTAINER: ${{ vars.TF_STATE_CONTAINER }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.13.0"
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="storage_account_name=${TF_STATE_ACCOUNT:?Set TF_STATE_STORAGE_ACCOUNT}" \
+            -backend-config="container_name=${TF_STATE_CONTAINER:?Set TF_STATE_CONTAINER}" \
+            -backend-config="key=terraform.tfstate"
+
+      - name: Terraform Plan
+        run: terraform plan -no-color -lock-timeout=5m -out=terraform.tfplan
+
+      - name: Terraform Apply
+        run: terraform apply -no-color -lock-timeout=5m terraform.tfplan
+
+      - name: Terraform Destroy
+        if: inputs.operation == 'destroy'
+        run: terraform plan -destroy -no-color -lock-timeout=5m -out=terraform.tfplan
+
+   
