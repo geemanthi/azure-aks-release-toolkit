@@ -45,7 +45,7 @@ jobs:
           terraform_wrapper: false
 
       - run: terraform fmt -recursive
-      - run: terraform init -backend=false -lockfile=readonly
+      - run: terraform init -backend=false
       - run: terraform validate
 
   terraform:
