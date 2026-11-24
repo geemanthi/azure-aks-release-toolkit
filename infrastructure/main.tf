@@ -56,7 +56,7 @@ resource "azapi_resource" "release_namespace" {
 }
 
 resource "azurerm_role_assignment" "release_namespace_writer" {
-  scope                = "${azurerm_kubernetes_cluster.demo.id}/namespaces/${azapi_resource.release_namespace.name}"
+  scope                = azapi_resource.release_namespace.id
   role_definition_name = "Azure Kubernetes Service RBAC Writer"
   principal_id         = data.azurerm_client_config.current.object_id
   principal_type       = "ServicePrincipal"
