@@ -1,16 +1,16 @@
 name: Terraform Run
 
 on:
-  push:
-    branches: [main, "aks-release-*"]
-    paths:
-      - "infrastructure/**"
-      - ".github/workflows/terraform-deploy.yml"
-  pull_request:
-    branches: [main, "aks-release-*"]
-    paths:
-      - "infrastructure/**"
-      - ".github/workflows/terraform-deploy.yml"
+  # push:
+  #   branches: [main, "pwrshell-release-*"]
+  #   paths:
+  #     - "infrastructure/**"
+  #     - ".github/workflows/terraform-deploy.yml"
+  # pull_request:
+  #   branches: [main, "pwrsell-release-*"]
+  #   paths:
+  #     - "infrastructure/**"
+  #     - ".github/workflows/terraform-deploy.yml"
   workflow_dispatch:
     inputs:
       operation:
