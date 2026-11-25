@@ -69,7 +69,7 @@ jobs:
         uses: azure/use-kubelogin@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: Connect to AKS
         shell: bash
         run: |
@@ -82,7 +82,7 @@ jobs:
           kubelogin convert-kubeconfig -l azurecli
 
       - name: Deploy and verify
-        # if: inputs.operation == 'deploy'
+        if: inputs.operation == 'deploy'
         shell: pwsh
         run: |
           ./scripts/Deploy-AksRelease.ps1 `
@@ -90,7 +90,7 @@ jobs:
             -Namespace $env:AKS_NAMESPACE
 
       - name: Roll back and verify
-        if: inputs.operation == 'rollback'
+        # if: inputs.operation == 'rollback'
         shell: pwsh
         env:
           ROLLBACK_REVISION: ${{ inputs.revision }}
