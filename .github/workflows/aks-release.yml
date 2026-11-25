@@ -65,8 +65,11 @@ jobs:
         with:
           version: ${{ steps.cluster.outputs.kubectl_version }}
 
-      - uses: azure/use-kubelogin@v1
-
+      - name: Install kubelogin
+        uses: azure/use-kubelogin@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
       - name: Connect to AKS
         shell: bash
         run: |
