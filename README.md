@@ -144,7 +144,7 @@ The app workflow uses `aks-release-demo-ci` as the runner's kubeconfig context a
 1. Commit the Terraform files, workflows.
 2. Run **Actions → Terraform Deploy → Run workflow**, select `main` and choose `apply` from the same branch. Confirm the workflow succeeded and the cluster appears in the Azure portal under **Kubernetes services**. Check the managed namespace and confirm the app identity has namespace access.
 
-[Workload view in Azure Portal](docs/screenshots/azure-portal-view.png)
+![Workload view in Azure Portal](docs/screenshots/azure-portal-view.png)
 
 ## Deploy and verify the baseline
 
