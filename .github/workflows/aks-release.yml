@@ -1,8 +1,6 @@
 name: AKS App Release
 
 on:
-  push:
-    branches: [main, "pwrshell-release-*"]
   workflow_dispatch:
     inputs:
       operation:
@@ -24,7 +22,7 @@ permissions:
 jobs:
   release:
     name: AKS ${{ inputs.operation }}
-    # if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: dev
     concurrency:
@@ -90,7 +88,7 @@ jobs:
             -Namespace $env:AKS_NAMESPACE
 
       - name: Roll back and verify
-        # if: inputs.operation == 'rollback'
+        if: inputs.operation == 'rollback'
         shell: pwsh
         env:
           ROLLBACK_REVISION: ${{ inputs.revision }}
