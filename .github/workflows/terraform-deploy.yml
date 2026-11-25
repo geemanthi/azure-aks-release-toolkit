@@ -1,16 +1,6 @@
 name: Terraform Run
 
 on:
-  # push:
-  #   branches: [main, "pwrshell-release-*"]
-  #   paths:
-  #     - "infrastructure/**"
-  #     - ".github/workflows/terraform-deploy.yml"
-  # pull_request:
-  #   branches: [main, "pwrsell-release-*"]
-  #   paths:
-  #     - "infrastructure/**"
-  #     - ".github/workflows/terraform-deploy.yml"
   workflow_dispatch:
     inputs:
       operation:
